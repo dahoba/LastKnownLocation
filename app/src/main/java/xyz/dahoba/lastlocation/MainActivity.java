@@ -6,10 +6,14 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
-import android.view.Menu;
-import android.view.MenuItem;
+
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationServices;
 
 public class MainActivity extends AppCompatActivity {
+
+
+    private GoogleApiClient googleApiClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +30,28 @@ public class MainActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+
+        //TODO
+        // ConnectionCallbacks, OnConnectionFailedListener
+        if (googleApiClient == null) {
+            googleApiClient = new GoogleApiClient.Builder(this)
+                    .addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(LocationServices.API)
+                    .build();
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        googleApiClient.connect();
+        super.onStart();
+    }
+
+    @Override
+    protected void onStop() {
+        googleApiClient.disconnect();
+        super.onStop();
     }
 
 //    @Override
@@ -49,4 +75,5 @@ public class MainActivity extends AppCompatActivity {
 //
 //        return super.onOptionsItemSelected(item);
 //    }
+
 }
