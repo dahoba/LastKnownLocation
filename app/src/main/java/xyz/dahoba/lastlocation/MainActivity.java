@@ -1,5 +1,6 @@
 package xyz.dahoba.lastlocation;
 
+import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -8,15 +9,21 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.vision.text.Text;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+    protected final String TAG = "MainActivity";
 
     private GoogleApiClient googleApiClient;
+    private Location lastLocation;
+    private TextView latitudeText;
+    private TextView longtitudeText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +40,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                         .setAction("Action", null).show();
             }
         });
+
+        latitudeText = (TextView) findViewById(R.id.latitudeText);
+        longtitudeText = (TextView) findViewById(R.id.longtitudeText);
 
         if (googleApiClient == null) {
             googleApiClient = new GoogleApiClient.Builder(this)
@@ -57,12 +67,19 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
     @Override
     public void onConnected(@Nullable Bundle bundle) {
-        //TODO
+
+        lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+        if (lastLocation != null) {
+
+            longtitudeText.setText(String.valueOf(lastLocation.getLongitude()));
+            latitudeText.setText(String.valueOf(lastLocation.getLatitude()));
+        }
     }
 
     @Override
     public void onConnectionSuspended(int i) {
         //TODO
+
     }
 
     @Override
