@@ -17,13 +17,18 @@ import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.LocationListener;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.vision.text.Text;
+
+import java.text.DateFormat;
+import java.util.Date;
 
 import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
 import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
-public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
     protected final String TAG = "MainActivity";
 
@@ -32,6 +37,15 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private TextView latitudeText;
     private TextView longtitudeText;
     public static final int MY_REQUST_PERMISSION = 1;
+
+    private String lastUpdateTime;
+    private TextView lastUpdateTextView;
+    private boolean requestLocationUpdates = true;
+    private LocationRequest locationRequest;
+    private Location currentLocation;
+    public static final long UPDATE_INTERVAL_IN_MILLISECONDS = 10000;
+    public static final long FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS =
+            UPDATE_INTERVAL_IN_MILLISECONDS / 2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,6 +65,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
 
         latitudeText = (TextView) findViewById(R.id.latitudeText);
         longtitudeText = (TextView) findViewById(R.id.longtitudeText);
+        lastUpdateTextView = (TextView) findViewById(R.id.lastUpdateText);
 
         if (googleApiClient == null) {
             googleApiClient = new GoogleApiClient.Builder(this)
@@ -59,7 +74,9 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                     .addApi(LocationServices.API)
                     .build();
         }
+        createLocationRequest();
     }
+
 
     @Override
     protected void onStart() {
@@ -71,6 +88,20 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     protected void onStop() {
         googleApiClient.disconnect();
         super.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopLocationUpdates();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (googleApiClient.isConnected() && !requestLocationUpdates) {
+            startLocationUpdates();
+        }
     }
 
     @Override
@@ -89,7 +120,10 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 // result of the request.
             }
         } else {
-            getLastLocation();
+            //getLastLocation();
+            if (requestLocationUpdates) {
+                startLocationUpdates();
+            }
         }
     }
 
@@ -132,6 +166,50 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         } else {
             Log.v(TAG, "last location was null!");
         }
+    }
+
+    private void startLocationUpdates() {
+        if (PermissionChecker.PERMISSION_GRANTED != PermissionChecker.checkSelfPermission(this, ACCESS_FINE_LOCATION)) {
+            Log.w(TAG, "No access location granted!");
+            return;
+        }
+        Log.v(TAG, "startLocationUpdates()");
+        LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient, locationRequest, this);
+    }
+
+    private void stopLocationUpdates() {
+        LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient, this);
+        Log.v(TAG, "stopLocationUpdates()");
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        Log.v(TAG,"onLocationChanged");
+        currentLocation = location;
+        lastUpdateTime = DateFormat.getInstance().format(new Date());
+        updateScreen();
+    }
+
+    private void updateScreen() {
+        latitudeText.setText(String.valueOf(currentLocation.getLatitude()));
+        longtitudeText.setText(String.valueOf(currentLocation.getLongitude()));
+        lastUpdateTextView.setText(lastUpdateTime);
+    }
+
+    private void createLocationRequest() {
+        locationRequest = new LocationRequest();
+
+        // Sets the desired interval for active location updates. This interval is
+        // inexact. You may not receive updates at all if no location sources are available, or
+        // you may receive them slower than requested. You may also receive updates faster than
+        // requested if other applications are requesting location at a faster interval.
+        locationRequest.setInterval(UPDATE_INTERVAL_IN_MILLISECONDS);
+
+        // Sets the fastest rate for active location updates. This interval is exact, and your
+        // application will never receive updates faster than this value.
+        locationRequest.setFastestInterval(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS);
+
+        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
     }
 //    @Override
 //    public boolean onCreateOptionsMenu(Menu menu) {
