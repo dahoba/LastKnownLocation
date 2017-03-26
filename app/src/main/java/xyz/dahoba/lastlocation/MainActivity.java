@@ -81,24 +81,16 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 // Show an explanation to the user *asynchronously* -- don't block
                 // this thread waiting for the user's response! After the user
                 // sees the explanation, try again to request the permission.
-                //TODO
             } else {
-                //TODO
                 ActivityCompat.requestPermissions(this,
                         new String[]{ACCESS_FINE_LOCATION}, MY_REQUST_PERMISSION);
-                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // MY_REQUST_PERMISSION is an
                 // app-defined int constant. The callback method gets the
                 // result of the request.
             }
-        }
-        lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
-        if (lastLocation != null) {
-            longtitudeText.setText(String.valueOf(lastLocation.getLongitude()));
-            latitudeText.setText(String.valueOf(lastLocation.getLatitude()));
         } else {
-            Log.v(TAG, "last location was null!");
+            getLastLocation();
         }
-
     }
 
     @Override
@@ -108,7 +100,8 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     // permission was granted, yay! Do the
                     // contacts-related task you need to do.
-                }else{
+                    getLastLocation();
+                } else {
 
                 }
                 return;
@@ -127,6 +120,19 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
         Log.e(TAG, "connection failed; " + connectionResult.getErrorMessage());
     }
 
+    private void getLastLocation() {
+        if (PermissionChecker.PERMISSION_GRANTED != PermissionChecker.checkSelfPermission(this, ACCESS_FINE_LOCATION)) {
+            Log.w(TAG, "No access location granted!");
+            return;
+        }
+        lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
+        if (lastLocation != null) {
+            longtitudeText.setText(String.valueOf(lastLocation.getLongitude()));
+            latitudeText.setText(String.valueOf(lastLocation.getLatitude()));
+        } else {
+            Log.v(TAG, "last location was null!");
+        }
+    }
 //    @Override
 //    public boolean onCreateOptionsMenu(Menu menu) {
 //        // Inflate the menu; this adds items to the action bar if it is present.
