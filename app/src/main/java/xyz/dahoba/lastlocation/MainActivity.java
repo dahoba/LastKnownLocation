@@ -1,16 +1,19 @@
 package xyz.dahoba.lastlocation;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener{
 
 
     private GoogleApiClient googleApiClient;
@@ -31,8 +34,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        //TODO
-        // ConnectionCallbacks, OnConnectionFailedListener
         if (googleApiClient == null) {
             googleApiClient = new GoogleApiClient.Builder(this)
                     .addConnectionCallbacks(this)
@@ -52,6 +53,21 @@ public class MainActivity extends AppCompatActivity {
     protected void onStop() {
         googleApiClient.disconnect();
         super.onStop();
+    }
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        //TODO
+    }
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        //TODO
+    }
+
+    @Override
+    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+        //TODO
     }
 
 //    @Override
