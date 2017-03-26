@@ -1,13 +1,17 @@
 package xyz.dahoba.lastlocation;
 
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.PermissionChecker;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
@@ -15,6 +19,9 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.vision.text.Text;
+
+import static android.Manifest.permission.ACCESS_COARSE_LOCATION;
+import static android.Manifest.permission.ACCESS_FINE_LOCATION;
 
 public class MainActivity extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
@@ -24,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     private Location lastLocation;
     private TextView latitudeText;
     private TextView longtitudeText;
+    public static final int MY_REQUST_PERMISSION = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,23 +76,55 @@ public class MainActivity extends AppCompatActivity implements GoogleApiClient.C
     @Override
     public void onConnected(@Nullable Bundle bundle) {
 
+        if (PermissionChecker.PERMISSION_GRANTED != PermissionChecker.checkSelfPermission(this, ACCESS_FINE_LOCATION)) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, ACCESS_FINE_LOCATION)) {
+                // Show an explanation to the user *asynchronously* -- don't block
+                // this thread waiting for the user's response! After the user
+                // sees the explanation, try again to request the permission.
+                //TODO
+            } else {
+                //TODO
+                ActivityCompat.requestPermissions(this,
+                        new String[]{ACCESS_FINE_LOCATION}, MY_REQUST_PERMISSION);
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
+            }
+        }
         lastLocation = LocationServices.FusedLocationApi.getLastLocation(googleApiClient);
         if (lastLocation != null) {
-
             longtitudeText.setText(String.valueOf(lastLocation.getLongitude()));
             latitudeText.setText(String.valueOf(lastLocation.getLatitude()));
+        } else {
+            Log.v(TAG, "last location was null!");
+        }
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case MY_REQUST_PERMISSION: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                }else{
+
+                }
+                return;
+            }
         }
     }
 
     @Override
     public void onConnectionSuspended(int i) {
-        //TODO
-
+        Log.w(TAG, "connection suspended");
+        googleApiClient.connect();
     }
 
     @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        //TODO
+        Log.e(TAG, "connection failed; " + connectionResult.getErrorMessage());
     }
 
 //    @Override
